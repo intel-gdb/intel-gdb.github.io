@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="GDB VLA support : Variable Length Array support for C99 and Fortran" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>GDB VLA support</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/intel-gdb">View on GitHub</a>
+
+          <h1 id="project_title">GDB VLA support</h1>
+          <h2 id="project_tagline">Variable Length Array support for C99 and Fortran</h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>This repository hosts the GDB Variable Length Array (VLA) implementation for C99 and Fortran (dynamic arrays).</p>
+
+<h1>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h1>
+
+<p>A variable length array (VLA) is an array, whose size resp. length is computed at run time and not at compile time for languages, which have automatic storage duration. This means that a variable will be allocated and deallocated automatically when the program flow enters and leaves its context. VLA's will be also called dynamic arrays in the Fortran area. In the past VLA's were just an GCC extension. Later the concept was included into C99. Although C99 supports dynamic arrays, C++ doesn't. Also not with the latest standard C++0x. Indeed, there is a proposal to introduce a library based solution to have a concept like VLA in C++[1]. However, in C++ one can use std::vector, but this it is not the same, as it uses dynamic memory and a pointer structure. It also allows the user to increase the size of the vector after initialization, whereas VLA's in C don't allow that.</p>
+
+<p>This project will add VLA support for C99 and Fortran to GDB, as thevanilla GDB is not able to debug dynamic array structures (Sept. 2013). This means that it is not possible to get the type or the value of a VLA using GDB in C and Fortran. The debugger does not crash when one tries to access a VLA, but the returned information is just useles and confusing for the user.</p>
+
+<p>[1] <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2648.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2648.html</a></p>
+
+<h1>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
+
+<p>A basic C99 example of an array, whose size will be computed at compile time:</p>
+
+<pre>void func() {
+  int array[100];
+}</pre>
+
+<p>A basic C99 example of a variable length array, whose size will be computed at run-time:</p>
+
+<pre>void func(int n) {
+  int array[n];
+}</pre>
+
+<p>Example for a VLA in Fortran:</p>
+
+<pre>program VLA
+  implicit none
+  real, allocatable :: array(:)
+  allocate (array(100))
+end program VLA</pre>
+
+<h1>
+<a name="structure-of-the-repository" class="anchor" href="#structure-of-the-repository"><span class="octicon octicon-link"></span></a>Structure of the repository</h1>
+
+<p>The repository is a clone of the GDB repository, which will be updated on a non-regular basis. The main development of the VLA feature is done on branches.</p>
+
+<p>Current active branches:</p>
+
+<ul>
+<li><a href="https://github.com/intel-gdb/vla/vla">vla</a></li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
