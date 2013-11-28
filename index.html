@@ -32,20 +32,13 @@
 <h1>
 <a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h1>
 
-<p>A variable length array (VLA) is an array, whose size resp. length is computed at run time and not at compile time for languages, which have automatic storage duration. This means that a variable will be allocated and deallocated automatically when the program flow enters and leaves its context. VLA's will be also called dynamic arrays in the Fortran area. In the past VLA's were just an GCC extension. Later the concept was included into C99. Although C99 supports dynamic arrays, C++ doesn't. Also not with the latest standard C++0x. Indeed, there is a proposal to introduce a library based solution to have a concept like VLA in C++[1]. However, in C++ one can use std::vector, but this it is not the same, as it uses dynamic memory and a pointer structure. It also allows the user to increase the size of the vector after initialization, whereas VLA's in C don't allow that.</p>
+<p>A variable length array (VLA) is an array, whose size resp. length is computed at run time and not at compile time for languages, which have automatic storage duration. This means that a variable will be allocated and deallocated automatically when the program flow enters and leaves its context. VLA's will be also called dynamic arrays in the Fortran area. In the past VLA's were just an GCC extension and later the concept was included into C99. Although C99 supports dynamic arrays, C++ doesn't, also not with the latest standard C++0x.</p>
 
-<p>This project will add VLA support for C99 and Fortran to GDB, as thevanilla GDB is not able to debug dynamic array structures (Sept. 2013). This means that it is not possible to get the type or the value of a VLA using GDB in C and Fortran. The debugger does not crash when one tries to access a VLA, but the returned information is just useles and confusing for the user.</p>
+<p>This project will add VLA support for C99 and Fortran to GDB. This means that it is not possible to get the type or the value of a VLA using GDB in C and Fortran.</p>
 
-<p>[1] <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2648.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2648.html</a></p>
 
 <h1>
 <a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
-
-<p>A basic C99 example of an array, whose size will be computed at compile time:</p>
-
-<pre>void func() {
-  int array[100];
-}</pre>
 
 <p>A basic C99 example of a variable length array, whose size will be computed at run-time:</p>
 
@@ -60,6 +53,33 @@
   real, allocatable :: array(:)
   allocate (array(100))
 end program VLA</pre>
+
+<h1>
+<a name="vla-approach" class="anchor" href="#vla-approach"><span class="octicon acticon-link"></span></a>VLA approach</h1>
+<p>
+Dwarf allows certain attributes e.g upper/lower bound, allocated/associated status to be computed dynamically.
+To support this dwarf features with the current gdb type-system, this project will introduce dynamic type properties, which will be "normalized" when requested.
+This means types with dynamic properties are converted to types with static properties and can then be handled by GDB like before this series.
+
+To convert a type with dynamic properties into one with static properties access to the inferior memory is required. Therefore we hooked into the following value constructors:
+<ul>
+	<li>value_at</li>
+	<li>value_at_lazy</li>
+	<li>value_from_contents_and_address</li>
+</ul>
+
+as they require an inferior address in addition to a type to instantiate a value. If the passed type has dynamic properties, we create a copy of it and resolve the dynamic values
+into static ones using the copy. This ensures that there will be no side effects, which can occur when modifying the original type. The copy is also required to not overwrite the dynamic attributes, which might be needed by a later operation.
+
+Given the following code snippet:
+
+<pre>struct value *val = value_at (my_vla_type, at_address);</pre>
+
+this was always true:
+<pre>TYPE_LENGTH (value_type (val)) == TYPE_LENGTH (my_vla_type)</pre>
+
+This is not the case anymore after applying this patch series. Type normalization is done in the mentioned value constructors and might change the value type including attributes, such as the length.
+</p>
 
 <h1>
 <a name="structure-of-the-repository" class="anchor" href="#structure-of-the-repository"><span class="octicon octicon-link"></span></a>Structure of the repository</h1>
